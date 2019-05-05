@@ -31,6 +31,12 @@ string Processes::getVM(int idx) const
     return VM[idx];
 }
 
+string Processes::getDirty(int idx) const
+{
+    return dirty[idx];
+}
+
+
 // int Processes::getPM() const
 // {
 //     return PM;
@@ -57,6 +63,11 @@ void Processes::setPID(string argPID)
 void Processes::setVM(string argVM, int idx)
 {
     VM[idx] = argVM;
+}
+
+void Processes::setDirty(string argDirty, int idx)
+{
+    dirty[idx] = argDirty;
 }
 
 // void Processes::setPM(int argPM)

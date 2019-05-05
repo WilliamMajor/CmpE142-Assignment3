@@ -184,7 +184,26 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 		}
 		else if(instruction == "W")
 		{
-			cout << "working W" << endl;
+			int vmcounter = 0;
+			bool exist = false;
+			while(newProcess[PID].getVM(vmcounter) !=  "")
+			{
+				if(jobdata[1] == newProcess[PID].getVM(vmcounter))
+				{
+					int dirtycount = 0;
+					exist = true;
+					while(newProcess[PID].getDirty(dirtycount) != "")
+					{
+						dirtycount++;
+					}
+					newProcess[PID].setDirty(newProcess[PID].getVM(vmcounter), dirtycount);
+				}
+				vmcounter++;
+			}
+			if(!exist)
+			{
+				cout << "Need to kill process" <<endl;
+			}
 		}
 		else if(instruction == "R")
 		{
