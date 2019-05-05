@@ -27,6 +27,11 @@ string Pmem::getPID() const
     return PID;
 }
 
+string Pmem::getVM() const
+{
+    return VM;
+}
+
 //Setters
 void Pmem::setFree(bool argFree)
 {
@@ -36,4 +41,9 @@ void Pmem::setFree(bool argFree)
 void Pmem::setPID(string argPID)
 {
     PID = argPID;
+}
+
+void Pmem::setVM(string argVM)
+{
+    VM = argVM;
 }

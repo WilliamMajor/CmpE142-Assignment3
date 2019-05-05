@@ -19,6 +19,7 @@ void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem);
 
 int instructionCount;
 int processCount = 0;
+int allocated = 0;
 
 int main() {
 
@@ -33,7 +34,7 @@ int main() {
 
 		failed = true;
 		//badchoice = false;
-		filelocation = "/home/will/CmpE142-Assignment3/memory.dat";
+		filelocation = "memory.dat";
 		Processes* ProcessArr = new Processes[100];
 		Pmem* PhysicalMem = new Pmem[20]; // allocate 20 physical memory
 
@@ -47,10 +48,20 @@ int main() {
 				cin >> filelocation;
 			}
 		}
-		for (int idx = 0; idx < processCount-1; idx++)
-		{
-			cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].lastTouched << " " << ProcessArr[idx].getVM(idx) <<endl;
-		}
+		// for (int idx = 0; idx < processCount-1; idx++)
+		// {
+		// 	cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].lastTouched << " " << endl;
+		// 	for(int i = 0; i < ProcessArr[idx].count; i++)
+		// 	{
+		// 		cout << ProcessArr[idx].getVM(i) << endl;
+		// 	}
+		// }
+		// cout << endl <<  "physical memory" << endl << endl;
+		// for(int idx = 0; idx < 20; idx++)
+		// {
+		// 	cout << PhysicalMem[idx].getPID() << " " << PhysicalMem[idx].getVM() << " ";
+		// 	(PhysicalMem[idx].getFree()) ? cout << "FREE" << endl : cout << "TAKEN" << endl;
+		// }
 	
 }
 
@@ -122,7 +133,6 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 {
 	string csvInput = replaceSpaceTab(Input);
 	int idx = 0;
-	
 	int PID;
 	bool newPID = true;
 	string jobdata[2];
@@ -134,7 +144,8 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 
 	jobdata[0] = data[0];	//process ID
 	instruction = data[1]; // instruction 
-	jobdata[1] = data[3]; //Virtual memory
+	jobdata[1] = data[2]; //Virtual memory
+
 	for (int i = 0; i < processCount; i++)
 	{
 		if(jobdata[0] == newProcess[i].getPID())
@@ -155,6 +166,20 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 
 		if(instruction == "A")
 		{
+			if(allocated >= 20)
+			{
+				cout << "switching to be done" << endl;
+			}
+			else
+			{
+				newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
+				PhysicalMem[allocated].setVM(newProcess[PID].getVM(newProcess[PID].count));
+				PhysicalMem[allocated].setPID(jobdata[0]);
+				PhysicalMem[allocated].setFree(false);
+				allocated++;
+				newProcess[PID].count++;
+			}
+			
 			
 		}
 		else if(instruction == "W")

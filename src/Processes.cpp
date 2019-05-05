@@ -9,7 +9,7 @@ using namespace std;
 Processes::Processes()
 {
     PID         = "";
-
+    count       = 0;
     Terminated  = false;
     killed      = false;
     lastTouched = clock();
@@ -26,15 +26,15 @@ string Processes::getPID() const
     return PID;
 }
 
-int Processes::getVM(int idx) const
+string Processes::getVM(int idx) const
 {
     return VM[idx];
 }
 
-int Processes::getPM() const
-{
-    return PM;
-}
+// int Processes::getPM() const
+// {
+//     return PM;
+// }
 
 bool Processes::getKilled() const
 {
@@ -54,15 +54,15 @@ void Processes::setPID(string argPID)
     PID = argPID;
 }
 
-void Processes::setVM(int argVM, int idx)
+void Processes::setVM(string argVM, int idx)
 {
     VM[idx] = argVM;
 }
 
-void Processes::setPM(int argPM)
-{
-    PM = argPM;
-}
+// void Processes::setPM(int argPM)
+// {
+//     PM = argPM;
+// }
 
 void Processes::setKilled(bool argKilled)
 {
