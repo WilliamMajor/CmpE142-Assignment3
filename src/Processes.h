@@ -8,20 +8,27 @@ class Processes
 {
     public:
         Processes();
-        Processes(int PID, int A, int Page);
+        //Processes(string PID);
         ~Processes();
-        int getPID() const;
-        string getA() const;
-        int getPage() const;
-        void setPID(int argPID);
-        void setA(string argA);
-        void setPage(int argPage);
+        string getPID() const;
+        int getPM() const;
+        int getVM(int i) const;
+        bool getKilled() const;
+        bool getTerminated() const;
+        
+        void setPID(string argPID);
+        void setVM(int argVM, int i);
+        void setPM(int argPM);
+        void setKilled(bool argKilled);
+        void setTerminated(bool argKilled); 
         clock_t lastTouched;
 
     private:
-        int     PID;
-        string  A;
-        int     Page;
+        string  PID;
+        int  VM[200];
+        int     PM;
+        bool    killed;
+        bool    Terminated;
         
 };
 #endif

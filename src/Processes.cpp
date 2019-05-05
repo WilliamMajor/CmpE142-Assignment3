@@ -1,7 +1,6 @@
 #include "Processes.h"
 #include <iostream>
 #include <ctime>
-#include <chrono>
 
 
 using namespace std;
@@ -9,9 +8,10 @@ using namespace std;
 //Constructors
 Processes::Processes()
 {
-    PID         = 0;
-    A           = "";
-    Page        = 0;
+    PID         = "";
+
+    Terminated  = false;
+    killed      = false;
     lastTouched = clock();
     
 }
@@ -20,43 +20,57 @@ Processes::~Processes()
 {
 }
 
-Processes::Processes(int argPID, int argA, int argPage)
-{
-    PID     = argPID;
-    A       = argA;
-    Page    = argPage;
-}
-
 //Getter functions
-int Processes::getPID() const
+string Processes::getPID() const
 {
     return PID;
 }
 
-string Processes::getA() const
+int Processes::getVM(int idx) const
 {
-    return A;
+    return VM[idx];
 }
 
-int Processes::getPage() const
+int Processes::getPM() const
 {
-    return Page;
+    return PM;
 }
+
+bool Processes::getKilled() const
+{
+    return killed;
+}
+
+bool Processes::getTerminated() const
+{
+    return Terminated;
+}
+
 
 
 //Setter Functions
-void Processes::setPID(int argPID)
+void Processes::setPID(string argPID)
 {
     PID = argPID;
 }
 
-void Processes::setA(string argA)
+void Processes::setVM(int argVM, int idx)
 {
-    A = argA;
+    VM[idx] = argVM;
 }
 
-void Processes::setPage(int argPage)
+void Processes::setPM(int argPM)
 {
-    Page = argPage;
+    PM = argPM;
+}
+
+void Processes::setKilled(bool argKilled)
+{
+    killed  = argKilled;
+}
+
+void Processes::setTerminated(bool argTerminated)
+{
+    Terminated = argTerminated;
 }
 

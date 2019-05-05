@@ -9,33 +9,37 @@
 #include <ctime>
 
 #include "Processes.h"
+#include "Pmem.h"
 
 using namespace std;
 
-bool importProcesses(string argFileLocation, Processes * ProcessesArr);
+bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem);
 string replaceSpaceTab(string rawInput);
-void parseline(string procInput, Processes& newProcess);
+void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem);
 
-int processCount;
+int instructionCount;
+int processCount = 0;
 
-int main(int argc, char *argv[]) {
+int main() {
 
 	string filelocation;
-	int choice = 0;
+	//int choice = 0;
 	bool failed;
-	bool badchoice;
+	//bool badchoice;
 
 
 	cout<<"Enter location of input file: ";
 	//cin>>filelocation;
 
 		failed = true;
-		badchoice = false;
-		filelocation = "memory.dat";
+		//badchoice = false;
+		filelocation = "/home/will/CmpE142-Assignment3/memory.dat";
 		Processes* ProcessArr = new Processes[100];
+		Pmem* PhysicalMem = new Pmem[20]; // allocate 20 physical memory
+
 		while(failed)
 		{
-			(importProcesses(filelocation, ProcessArr)) ? failed = false : failed = true;
+			(importProcesses(filelocation, ProcessArr, PhysicalMem)) ? failed = false : failed = true;
 			if(failed)
 			{
 				cout << "Bad file location please try again"<< endl << endl;
@@ -43,16 +47,14 @@ int main(int argc, char *argv[]) {
 				cin >> filelocation;
 			}
 		}
-		for (int idx = 0; idx < processCount; idx++)
+		for (int idx = 0; idx < processCount-1; idx++)
 		{
-			cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].getA() << " "; 
-			(ProcessArr[idx].getPage() == 0) ? cout << "" : cout << ProcessArr[idx].getPage();
-			cout << " "  << ProcessArr[idx].lastTouched << endl;
+			cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].lastTouched << " " << ProcessArr[idx].getVM(idx) <<endl;
 		}
 	
 }
 
-bool importProcesses(string argFileLocation, Processes * ProcessesArr)
+bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem)
 {
 	ifstream Processesfile(argFileLocation);
 	int lineCount = 0;
@@ -75,12 +77,12 @@ bool importProcesses(string argFileLocation, Processes * ProcessesArr)
 		idx++;
 		
 	}
-	 processCount = lineCount -1;
+	 instructionCount = lineCount -1;
 
 	//parse and fill Processes with data
-	for (int i = 0; i <= processCount; i++)
+	for (int i = 0; i <= instructionCount; i++)
 	{
-		parseline(temp[i], ProcessesArr[i]);
+		parseline(temp[i], ProcessesArr, PhysicalMem);
 	}
 
 	
@@ -116,23 +118,64 @@ string replaceSpaceTab(string rawInput)
 	return commastring;
 }
 
-void parseline(string Input, Processes& newProcess)
+void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 {
 	string csvInput = replaceSpaceTab(Input);
 	int idx = 0;
-	string jobdata[3];
+	
+	int PID;
+	bool newPID = true;
+	string jobdata[2];
+	string instruction;
 	stringstream input(csvInput);
 	string data[3];
-	while(getline(input , data[idx]))
+
+	while(getline(input , data[idx])) idx++;
+
+	jobdata[0] = data[0];	//process ID
+	instruction = data[1]; // instruction 
+	jobdata[1] = data[3]; //Virtual memory
+	for (int i = 0; i < processCount; i++)
 	{
-		jobdata[idx] = data[idx];
-		idx++;
+		if(jobdata[0] == newProcess[i].getPID())
+		{
+			newPID = false;
+			PID = i;
+			i = processCount;
+		}
 	}
-	if(jobdata[0] != "") newProcess.setPID(stoi(jobdata[0]));
-	newProcess.setA(jobdata[1]);
-	if(jobdata[2] != "")
+	if(newPID)
 	{
-		newProcess.setPage(stoi(jobdata[2]));
+		newProcess[processCount].setPID(jobdata[0]);
+		processCount++;
 	}
-	newProcess.lastTouched = clock();
+	else
+	{
+		newProcess[PID].lastTouched = clock();
+
+		if(instruction == "A")
+		{
+			
+		}
+		else if(instruction == "W")
+		{
+			cout << "working W" << endl;
+		}
+		else if(instruction == "R")
+		{
+			cout << "working R" << endl;
+		}
+		else if(instruction == "F")
+		{
+			cout << "working F" << endl;
+		}
+		else if(instruction == "T")
+		{
+			cout << "working T" << endl;
+		}
+		else if(instruction == "C")
+		{
+			cout << "an error should be thrown here" << endl;
+		}
+	}
 }
