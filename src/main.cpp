@@ -10,23 +10,29 @@
 
 #include "Processes.h"
 #include "Pmem.h"
+#include "Swap.h"
 
 using namespace std;
 
-bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem);
+bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem, Swap * SwapArr);
 string replaceSpaceTab(string rawInput);
-void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem);
+void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr);
+void FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length);
 
 int instructionCount;
 int processCount = 0;
 int counter = 0;
 int allocated = 0;
+bool runFIFO = false;
+bool LRU = false;
+bool Random = false;
 
 int main() {
 
 	string filelocation;
 	//int choice = 0;
 	bool failed;
+	
 	//bool badchoice;
 
 
@@ -34,14 +40,16 @@ int main() {
 	//cin>>filelocation;
 
 		failed = true;
+		runFIFO = true;
 		//badchoice = false;
 		filelocation = "memory.dat";
 		Processes* ProcessArr = new Processes[100];
 		Pmem* PhysicalMem = new Pmem[20]; // allocate 20 physical memory
+		Swap* SwapArr = new Swap[100];
 
 		while(failed)
 		{
-			(importProcesses(filelocation, ProcessArr, PhysicalMem)) ? failed = false : failed = true;
+			(importProcesses(filelocation, ProcessArr, PhysicalMem, SwapArr)) ? failed = false : failed = true;
 			if(failed)
 			{
 				cout << "Bad file location please try again"<< endl << endl;
@@ -57,16 +65,16 @@ int main() {
 				cout << ProcessArr[idx].getVM(i) << endl;
 			}
 		}
-		// cout << endl <<  "physical memory" << endl << endl;
-		// for(int idx = 0; idx < 20; idx++)
-		// {
-		// 	cout << PhysicalMem[idx].getPID() << " " << PhysicalMem[idx].getVM() << " ";
-		// 	(PhysicalMem[idx].getFree()) ? cout << "FREE" << endl : cout << "TAKEN" << endl;
-		// }
+		cout << endl <<  "physical memory" << endl << endl;
+		for(int idx = 0; idx < 20; idx++)
+		{
+			cout << PhysicalMem[idx].getPID() << " " << PhysicalMem[idx].getVM() << " ";
+			(PhysicalMem[idx].getFree()) ? cout << "FREE" << endl : cout << "TAKEN" << endl;
+		}
 	
 }
 
-bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem)
+bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem, Swap * SwapArr)
 {
 	ifstream Processesfile(argFileLocation);
 	int lineCount = 0;
@@ -94,7 +102,7 @@ bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * Ph
 	//parse and fill Processes with data
 	for (int i = 0; i <= instructionCount; i++)
 	{
-		parseline(temp[i], ProcessesArr, PhysicalMem);
+		parseline(temp[i], ProcessesArr, PhysicalMem, SwapArr);
 	}
 
 	
@@ -130,7 +138,7 @@ string replaceSpaceTab(string rawInput)
 	return commastring;
 }
 
-void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
+void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr)
 {
 	string csvInput = replaceSpaceTab(Input);
 	int idx = 0;
@@ -166,34 +174,57 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 	}
 	else
 	{
-		if(!newProcess[PID].getKilled() && !newProcess[PID].getTerminated())
+		if(!newProcess[PID].getKilled())
 		{
 			
 
 			if(instruction == "A")
 			{
-				newProcess[PID].lastTouched = clock();
-				for(int idx = 0; idx < 20; idx++)
+				if(newProcess[PID].getTerminated())
 				{
-					if(PhysicalMem[idx].getFree())
+					newProcess[PID].setKilled(true);
+					cout << "killing3 " << newProcess[PID].getPID() << endl;
+					for(int idx = 0; idx < 20; idx++)
 					{
-						allocated = idx;
-						idx = 21;
+						if(PhysicalMem[idx].getPID() == jobdata[0])
+						{
+							PhysicalMem[idx].setFree(true);
+							PhysicalMem[idx].setPID("");
+							PhysicalMem[idx].setVM("");
+						}
 					}
-				}
-				if(allocated == 20)
-				{
-					cout << "switching to be done" << endl;
 				}
 				else
 				{
-					newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
-					PhysicalMem[allocated].setVM(newProcess[PID].getVM(newProcess[PID].count));
-					PhysicalMem[allocated].setPID(jobdata[0]);
-					PhysicalMem[allocated].setFree(false);
-					allocated++;
-					newProcess[PID].count++;
+					newProcess[PID].lastTouched = clock();
+					for(int idx = 0; idx < 20; idx++)
+					{
+						if(PhysicalMem[idx].getFree())
+						{
+							allocated = idx;
+							idx = 21;
+						}
+					}
+					if(allocated == 20)
+					{
+
+						if(runFIFO)
+						{
+							FIFO(newProcess, PhysicalMem, SwapArr, PID);
+						}
 				}
+					else
+					{
+						newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
+						PhysicalMem[allocated].setVM(newProcess[PID].getVM(newProcess[PID].count));
+						PhysicalMem[allocated].setPID(jobdata[0]);
+						PhysicalMem[allocated].setFree(false);
+						allocated++;
+						newProcess[PID].count++;
+					}
+				}
+				
+				
 				
 				
 			}
@@ -315,6 +346,10 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 			}
 			else if(instruction == "T")
 			{
+				for(int i = 0; i < 200; i++)
+				{
+					newProcess[PID].setVM("", i);
+				}
 				newProcess[PID].setTerminated(true);
 
 				for(int idx = 0; idx < 20; idx++)
@@ -327,8 +362,23 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 			}
 			else if(instruction == "C")
 			{
-				cout << "an error should be thrown here" << endl;
+				newProcess[PID].setTerminated(false);
 			}
 		}	
+	}
+}
+
+void FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
+{
+	int first = 0;
+	for(int idx = 0; idx < length; idx++)
+	{
+		for(int i = idx + 1; i < length; idx++)
+		{
+			if(newProcess[idx].firstTouched > newProcess[i].firstTouched)
+			{
+				first = i;
+			}
+		}
 	}
 }

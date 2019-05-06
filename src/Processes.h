@@ -23,11 +23,12 @@ class Processes
         void setVM(string argVM, int i);
         void setDirty(string argDirty, int i);
         void setKilled(bool argKilled);
-        void setTerminated(bool argKilled); 
+        void setTerminated(bool argKilled);
         clock_t lastTouched;
         clock_t firstTouched;
 
         int count;
+        
         
 
     private:
