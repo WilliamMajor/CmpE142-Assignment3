@@ -19,8 +19,8 @@ void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem);
 
 int instructionCount;
 int processCount = 0;
-int allocated = 0;
 int counter = 0;
+int allocated = 0;
 
 int main() {
 
@@ -173,7 +173,15 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 			if(instruction == "A")
 			{
 				newProcess[PID].lastTouched = clock();
-				if(allocated >= 20)
+				for(int idx = 0; idx < 20; idx++)
+				{
+					if(PhysicalMem[idx].getFree())
+					{
+						allocated = idx;
+						idx = 21;
+					}
+				}
+				if(allocated == 20)
 				{
 					cout << "switching to be done" << endl;
 				}
@@ -194,7 +202,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 				int vmcounter = 0;
 				bool exist = false;
 				newProcess[PID].lastTouched = clock();
-				while(newProcess[PID].getVM(vmcounter) !=  "")
+				for(int i = 0; i < 200; i++)
 				{
 					if(jobdata[1] == newProcess[PID].getVM(vmcounter))
 					{
@@ -212,7 +220,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 				if(!exist)
 				{
 					newProcess[PID].setKilled(true);
-					cout << "killing " << newProcess[PID].getPID() << endl;
+					cout << "killing1 " << newProcess[PID].getPID() << endl;
 					for(int idx = 0; idx < 20; idx++)
 					{
 						if(PhysicalMem[idx].getPID() == jobdata[0])
@@ -228,7 +236,8 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 				bool exist = false;
 				bool dirty = false;
 				newProcess[PID].lastTouched = clock();
-				while(newProcess[PID].getVM(vmcounter) !=  "")
+				//while(newProcess[PID].getVM(vmcounter) !=  "")
+				for(int i = 0; i < 200; i++)
 				{
 					if(jobdata[1] == newProcess[PID].getVM(vmcounter))
 					{
@@ -244,7 +253,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 						if(!dirty)
 						{
 							newProcess[PID].setKilled(true);
-							cout << "killing " << newProcess[PID].getPID() << endl;
+							cout << "killing2 " << newProcess[PID].getPID() << endl;
 							for(int idx = 0; idx < 20; idx++)
 							{
 								if(PhysicalMem[idx].getPID() == jobdata[0])
@@ -259,7 +268,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 				if(!exist)
 				{
 					newProcess[PID].setKilled(true);
-					cout << "killing " << newProcess[PID].getPID() << endl;
+					cout << "killing3 " << newProcess[PID].getPID() << endl;
 					for(int idx = 0; idx < 20; idx++)
 					{
 						if(PhysicalMem[idx].getPID() == jobdata[0])
@@ -274,7 +283,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 				int vmcounter = 0;
 				bool exist = false;
 				newProcess[PID].lastTouched = clock();
-				while(newProcess[PID].getVM(vmcounter) !=  "")
+				for(int i = 0; i < 200; i++)
 				{
 					if(jobdata[1] == newProcess[PID].getVM(vmcounter))
 					{
@@ -286,13 +295,15 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 								PhysicalMem[idx].setFree(true);
 							}
 						}
+						newProcess[PID].setVM("", vmcounter);
 					}
 					vmcounter++;
 				}
 				if(!exist)
 				{
+					
 					newProcess[PID].setKilled(true);
-					cout << "killing " << newProcess[PID].getPID() << endl;
+					cout << "killing4 " << newProcess[PID].getPID() << endl;
 					for(int idx = 0; idx < 20; idx++)
 					{
 						if(PhysicalMem[idx].getPID() == jobdata[0])
