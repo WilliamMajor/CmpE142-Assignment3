@@ -17,7 +17,7 @@ using namespace std;
 bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem, Swap * SwapArr);
 string replaceSpaceTab(string rawInput);
 void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr);
-void FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length);
+int FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length);
 
 int instructionCount;
 int processCount = 0;
@@ -57,14 +57,14 @@ int main() {
 				cin >> filelocation;
 			}
 		}
-		for (int idx = 0; idx < processCount; idx++)
-		{
-			cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].firstTouched << " " <<  ProcessArr[idx].lastTouched << endl;
-			for(int i = 0; i < ProcessArr[idx].count; i++)
-			{
-				cout << ProcessArr[idx].getVM(i) << endl;
-			}
-		}
+		// for (int idx = 0; idx < processCount; idx++)
+		// {
+		// 	cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].firstTouched << " " <<  ProcessArr[idx].lastTouched << endl;
+		// 	for(int i = 0; i < ProcessArr[idx].count; i++)
+		// 	{
+		// 		cout << ProcessArr[idx].getVM(i) << endl;
+		// 	}
+		// }
 		cout << endl <<  "physical memory" << endl << endl;
 		for(int idx = 0; idx < 20; idx++)
 		{
@@ -210,7 +210,13 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 
 						if(runFIFO)
 						{
-							FIFO(newProcess, PhysicalMem, SwapArr, PID);
+							int toreplace = 0;
+							toreplace = FIFO(newProcess, PhysicalMem, SwapArr, PID);
+							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
+							PhysicalMem[toreplace].setVM(newProcess[PID].getVM(newProcess[PID].count));
+							PhysicalMem[toreplace].setPID(jobdata[0]);
+							PhysicalMem[toreplace].setFree(false);
+							newProcess[PID].count++;
 						}
 				}
 					else
@@ -368,9 +374,15 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 	}
 }
 
-void FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
+int FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
 {
 	int first = 0;
+	string vmswap[200];
+	int vmswapCount = 0;
+	int swapchoice = 0;
+	int swaparrayidx = 0;
+	int pmswapped = 0;
+
 	for(int idx = 0; idx < length; idx++)
 	{
 		for(int i = idx + 1; i < length; idx++)
@@ -381,4 +393,46 @@ void FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length
 			}
 		}
 	}
+	for(int i = 0; i < 200; i++)
+	{
+		if(newProcess[first].getVM(i) != "")
+		{
+			vmswap[vmswapCount] = newProcess[first].getVM(i);
+			vmswapCount++;
+		}
+	}
+
+	swapchoice = rand() % vmswapCount + 0;
+
+	while(SwapArr[swaparrayidx].getVM() != "")
+	{
+		swaparrayidx++;
+	}
+	//add to the list of swapped vms
+	SwapArr[swaparrayidx].setVM(newProcess[first].getVM(swapchoice));
+	//free up the space in the physical memory
+	for (int idx = 0; idx < 20; idx++)
+	{
+		if(PhysicalMem[idx].getPID() == newProcess[first].getPID())
+		{
+			if(PhysicalMem[idx].getVM() == newProcess[first].getVM(swapchoice))
+			{
+				cout <<"to swap:"<< endl;
+				cout << PhysicalMem[idx].getPID() << " ";
+				cout << PhysicalMem[idx].getVM() << endl;
+				PhysicalMem[idx].setFree(true);
+				PhysicalMem[idx].setVM("");
+				pmswapped = idx;
+
+			}
+		}
+
+	}
+	// cout <<"possible vms ";
+	// for(int idx = 0; idx < vmswapCount; idx++)
+	// {
+	// 	cout << vmswap[idx] << " ";
+	// }
+	// cout << endl;
+	return pmswapped;
 }
