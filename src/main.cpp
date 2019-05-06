@@ -192,6 +192,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 				{
 					int dirtycount = 0;
 					exist = true;
+					//cout << "got here" << endl;
 					while(newProcess[PID].getDirty(dirtycount) != "")
 					{
 						dirtycount++;
@@ -202,7 +203,15 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 			}
 			if(!exist)
 			{
-				cout << "Need to kill process" <<endl;
+				newProcess[PID].setKilled(true);
+				cout << "killing " << newProcess[PID].getPID() << endl;
+				for(int idx = 0; idx < 20; idx++)
+				{
+					if(PhysicalMem[idx].getPID() == jobdata[0])
+					{
+						PhysicalMem[idx].setFree(true);
+					}
+				}
 			}
 		}
 		else if(instruction == "R")
@@ -225,23 +234,75 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 					}
 					if(!dirty)
 					{
-						cout << "need to kill process" << endl;
+						newProcess[PID].setKilled(true);
+						cout << "killing " << newProcess[PID].getPID() << endl;
+						for(int idx = 0; idx < 20; idx++)
+						{
+							if(PhysicalMem[idx].getPID() == jobdata[0])
+							{
+								PhysicalMem[idx].setFree(true);
+							}
+						}
 					}
 				}
 				vmcounter++;
 			}
 			if(!exist)
 			{
-				cout << "Need to kill process" <<endl;
+				newProcess[PID].setKilled(true);
+				cout << "killing " << newProcess[PID].getPID() << endl;
+				for(int idx = 0; idx < 20; idx++)
+				{
+					if(PhysicalMem[idx].getPID() == jobdata[0])
+					{
+						PhysicalMem[idx].setFree(true);
+					}
+				}
 			}
 		}
 		else if(instruction == "F")
 		{
-			cout << "working F" << endl;
+			int vmcounter = 0;
+			bool exist = false;
+			while(newProcess[PID].getVM(vmcounter) !=  "")
+			{
+				if(jobdata[1] == newProcess[PID].getVM(vmcounter))
+				{
+					exist = true;
+					for(int idx = 0; idx < 20; idx++)
+					{
+						if((PhysicalMem[idx].getVM() == jobdata[1]) && (PhysicalMem[idx].getPID() == newProcess[PID].getPID()))
+						{
+							PhysicalMem[idx].setFree(true);
+						}
+					}
+				}
+				vmcounter++;
+			}
+			if(!exist)
+			{
+				newProcess[PID].setKilled(true);
+				cout << "killing " << newProcess[PID].getPID() << endl;
+				for(int idx = 0; idx < 20; idx++)
+				{
+					if(PhysicalMem[idx].getPID() == jobdata[0])
+					{
+						PhysicalMem[idx].setFree(true);
+					}
+				}
+			}
 		}
 		else if(instruction == "T")
 		{
-			cout << "working T" << endl;
+			newProcess[PID].setTerminated(true);
+
+			for(int idx = 0; idx < 20; idx++)
+			{
+				if(PhysicalMem[idx].getPID() == jobdata[0])
+				{
+					PhysicalMem[idx].setFree(true);
+				}
+			}
 		}
 		else if(instruction == "C")
 		{
