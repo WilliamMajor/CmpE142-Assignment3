@@ -20,6 +20,7 @@ void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem);
 int instructionCount;
 int processCount = 0;
 int allocated = 0;
+int counter = 0;
 
 int main() {
 
@@ -48,14 +49,14 @@ int main() {
 				cin >> filelocation;
 			}
 		}
-		// for (int idx = 0; idx < processCount-1; idx++)
-		// {
-		// 	cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].lastTouched << " " << endl;
-		// 	for(int i = 0; i < ProcessArr[idx].count; i++)
-		// 	{
-		// 		cout << ProcessArr[idx].getVM(i) << endl;
-		// 	}
-		// }
+		for (int idx = 0; idx < processCount; idx++)
+		{
+			cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].firstTouched << " " <<  ProcessArr[idx].lastTouched << endl;
+			for(int i = 0; i < ProcessArr[idx].count; i++)
+			{
+				cout << ProcessArr[idx].getVM(i) << endl;
+			}
+		}
 		// cout << endl <<  "physical memory" << endl << endl;
 		// for(int idx = 0; idx < 20; idx++)
 		// {
@@ -153,136 +154,158 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 			newPID = false;
 			PID = i;
 			i = processCount;
+			
 		}
 	}
-	if(newPID)
+	if(newPID && (jobdata[0] != ""))
 	{
 		newProcess[processCount].setPID(jobdata[0]);
+		newProcess[processCount].firstTouched = clock();
+		newProcess[processCount].lastTouched = clock();
 		processCount++;
 	}
 	else
 	{
-		newProcess[PID].lastTouched = clock();
+		if(!newProcess[PID].getKilled() && !newProcess[PID].getTerminated())
+		{
+			
 
-		if(instruction == "A")
-		{
-			if(allocated >= 20)
+			if(instruction == "A")
 			{
-				cout << "switching to be done" << endl;
-			}
-			else
-			{
-				newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
-				PhysicalMem[allocated].setVM(newProcess[PID].getVM(newProcess[PID].count));
-				PhysicalMem[allocated].setPID(jobdata[0]);
-				PhysicalMem[allocated].setFree(false);
-				allocated++;
-				newProcess[PID].count++;
-			}
-			
-			
-		}
-		else if(instruction == "W")
-		{
-			int vmcounter = 0;
-			bool exist = false;
-			while(newProcess[PID].getVM(vmcounter) !=  "")
-			{
-				if(jobdata[1] == newProcess[PID].getVM(vmcounter))
+				newProcess[PID].lastTouched = clock();
+				if(allocated >= 20)
 				{
-					int dirtycount = 0;
-					exist = true;
-					//cout << "got here" << endl;
-					while(newProcess[PID].getDirty(dirtycount) != "")
-					{
-						dirtycount++;
-					}
-					newProcess[PID].setDirty(newProcess[PID].getVM(vmcounter), dirtycount);
+					cout << "switching to be done" << endl;
 				}
-				vmcounter++;
-			}
-			if(!exist)
-			{
-				newProcess[PID].setKilled(true);
-				cout << "killing " << newProcess[PID].getPID() << endl;
-				for(int idx = 0; idx < 20; idx++)
+				else
 				{
-					if(PhysicalMem[idx].getPID() == jobdata[0])
-					{
-						PhysicalMem[idx].setFree(true);
-					}
+					newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
+					PhysicalMem[allocated].setVM(newProcess[PID].getVM(newProcess[PID].count));
+					PhysicalMem[allocated].setPID(jobdata[0]);
+					PhysicalMem[allocated].setFree(false);
+					allocated++;
+					newProcess[PID].count++;
 				}
+				
+				
 			}
-		}
-		else if(instruction == "R")
-		{
-			int vmcounter = 0;
-			bool exist = false;
-			bool dirty = false;
-			while(newProcess[PID].getVM(vmcounter) !=  "")
+			else if(instruction == "W")
 			{
-				if(jobdata[1] == newProcess[PID].getVM(vmcounter))
+				int vmcounter = 0;
+				bool exist = false;
+				newProcess[PID].lastTouched = clock();
+				while(newProcess[PID].getVM(vmcounter) !=  "")
 				{
-					int dirtycount = 0;
-					exist = true;
-					for(int idx = 0; idx < 200; idx++)
+					if(jobdata[1] == newProcess[PID].getVM(vmcounter))
 					{
-						if(newProcess[PID].getDirty(idx) == newProcess[PID].getVM(vmcounter))
+						int dirtycount = 0;
+						exist = true;
+						//cout << "got here" << endl;
+						while(newProcess[PID].getDirty(dirtycount) != "")
 						{
-							dirty = true;
+							dirtycount++;
 						}
+						newProcess[PID].setDirty(newProcess[PID].getVM(vmcounter), dirtycount);
 					}
-					if(!dirty)
-					{
-						newProcess[PID].setKilled(true);
-						cout << "killing " << newProcess[PID].getPID() << endl;
-						for(int idx = 0; idx < 20; idx++)
-						{
-							if(PhysicalMem[idx].getPID() == jobdata[0])
-							{
-								PhysicalMem[idx].setFree(true);
-							}
-						}
-					}
+					vmcounter++;
 				}
-				vmcounter++;
-			}
-			if(!exist)
-			{
-				newProcess[PID].setKilled(true);
-				cout << "killing " << newProcess[PID].getPID() << endl;
-				for(int idx = 0; idx < 20; idx++)
+				if(!exist)
 				{
-					if(PhysicalMem[idx].getPID() == jobdata[0])
-					{
-						PhysicalMem[idx].setFree(true);
-					}
-				}
-			}
-		}
-		else if(instruction == "F")
-		{
-			int vmcounter = 0;
-			bool exist = false;
-			while(newProcess[PID].getVM(vmcounter) !=  "")
-			{
-				if(jobdata[1] == newProcess[PID].getVM(vmcounter))
-				{
-					exist = true;
+					newProcess[PID].setKilled(true);
+					cout << "killing " << newProcess[PID].getPID() << endl;
 					for(int idx = 0; idx < 20; idx++)
 					{
-						if((PhysicalMem[idx].getVM() == jobdata[1]) && (PhysicalMem[idx].getPID() == newProcess[PID].getPID()))
+						if(PhysicalMem[idx].getPID() == jobdata[0])
 						{
 							PhysicalMem[idx].setFree(true);
 						}
 					}
 				}
-				vmcounter++;
 			}
-			if(!exist)
+			else if(instruction == "R")
 			{
-				newProcess[PID].setKilled(true);
-				cout << "killing " << newProcess[PID].getPID() << endl;
+				int vmcounter = 0;
+				bool exist = false;
+				bool dirty = false;
+				newProcess[PID].lastTouched = clock();
+				while(newProcess[PID].getVM(vmcounter) !=  "")
+				{
+					if(jobdata[1] == newProcess[PID].getVM(vmcounter))
+					{
+						int dirtycount = 0;
+						exist = true;
+						for(int idx = 0; idx < 200; idx++)
+						{
+							if(newProcess[PID].getDirty(idx) == newProcess[PID].getVM(vmcounter))
+							{
+								dirty = true;
+							}
+						}
+						if(!dirty)
+						{
+							newProcess[PID].setKilled(true);
+							cout << "killing " << newProcess[PID].getPID() << endl;
+							for(int idx = 0; idx < 20; idx++)
+							{
+								if(PhysicalMem[idx].getPID() == jobdata[0])
+								{
+									PhysicalMem[idx].setFree(true);
+								}
+							}
+						}
+					}
+					vmcounter++;
+				}
+				if(!exist)
+				{
+					newProcess[PID].setKilled(true);
+					cout << "killing " << newProcess[PID].getPID() << endl;
+					for(int idx = 0; idx < 20; idx++)
+					{
+						if(PhysicalMem[idx].getPID() == jobdata[0])
+						{
+							PhysicalMem[idx].setFree(true);
+						}
+					}
+				}
+			}
+			else if(instruction == "F")
+			{
+				int vmcounter = 0;
+				bool exist = false;
+				newProcess[PID].lastTouched = clock();
+				while(newProcess[PID].getVM(vmcounter) !=  "")
+				{
+					if(jobdata[1] == newProcess[PID].getVM(vmcounter))
+					{
+						exist = true;
+						for(int idx = 0; idx < 20; idx++)
+						{
+							if((PhysicalMem[idx].getVM() == jobdata[1]) && (PhysicalMem[idx].getPID() == newProcess[PID].getPID()))
+							{
+								PhysicalMem[idx].setFree(true);
+							}
+						}
+					}
+					vmcounter++;
+				}
+				if(!exist)
+				{
+					newProcess[PID].setKilled(true);
+					cout << "killing " << newProcess[PID].getPID() << endl;
+					for(int idx = 0; idx < 20; idx++)
+					{
+						if(PhysicalMem[idx].getPID() == jobdata[0])
+						{
+							PhysicalMem[idx].setFree(true);
+						}
+					}
+				}
+			}
+			else if(instruction == "T")
+			{
+				newProcess[PID].setTerminated(true);
+
 				for(int idx = 0; idx < 20; idx++)
 				{
 					if(PhysicalMem[idx].getPID() == jobdata[0])
@@ -291,22 +314,10 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem)
 					}
 				}
 			}
-		}
-		else if(instruction == "T")
-		{
-			newProcess[PID].setTerminated(true);
-
-			for(int idx = 0; idx < 20; idx++)
+			else if(instruction == "C")
 			{
-				if(PhysicalMem[idx].getPID() == jobdata[0])
-				{
-					PhysicalMem[idx].setFree(true);
-				}
+				cout << "an error should be thrown here" << endl;
 			}
-		}
-		else if(instruction == "C")
-		{
-			cout << "an error should be thrown here" << endl;
-		}
+		}	
 	}
 }

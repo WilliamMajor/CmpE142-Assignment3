@@ -25,6 +25,7 @@ class Processes
         void setKilled(bool argKilled);
         void setTerminated(bool argKilled); 
         clock_t lastTouched;
+        clock_t firstTouched;
 
         int count;
         
