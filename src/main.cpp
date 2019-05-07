@@ -29,43 +29,30 @@ bool runFIFO = false;
 bool runLRU = false;
 bool runRandom = false;
 
+
 int main() {
 
 	string filelocation;
-	int choice = 0;
+	int choice;
 	bool failed;
-	bool swapped = true;
-	
+	bool swapped;
 	bool badchoice;
-
-	
 
 	cout<<"Enter location of input file: ";
 	cin>>filelocation;
 
+	while (1)
+	{
 
-
+		choice = 0;
+		swapped = true;
 		failed = true;
-		runFIFO = false;
-		runLRU = false;
-		runRandom = true;
 		
 		//badchoice = false;
 		filelocation = filelocation;
 		Processes* ProcessArr = new Processes[100];
 		Pmem* PhysicalMem = new Pmem[20]; // allocate 20 physical memory
 		Swap* SwapArr = new Swap[100];
-
-		while(failed)
-		{
-			(importProcesses(filelocation, ProcessArr, PhysicalMem, SwapArr)) ? failed = false : failed = true;
-			if(failed)
-			{
-				cout << "Bad file location please try again"<< endl << endl;
-				cout << "Enter location of input file: ";
-				cin >> filelocation;
-			}
-		}
 
 		cout <<"1. FIFO " << endl << "2. LRU " << endl << "3. Random" << endl << endl;
 		cout << "What algorithm would you like to run?  ";
@@ -88,6 +75,7 @@ int main() {
 		switch(choice)
 		{
 			case 1: 
+				cout << "Hello" << endl;
 				runFIFO = true;
 				runLRU = false;
 				runRandom = false;
@@ -104,9 +92,20 @@ int main() {
 				break;
 			case 4:
 				exit(1);
-			
-
 		}
+
+		while(failed)
+		{
+			(importProcesses(filelocation, ProcessArr, PhysicalMem, SwapArr)) ? failed = false : failed = true;
+			if(failed)
+			{
+				cout << "Bad file location please try again"<< endl << endl;
+				cout << "Enter location of input file: ";
+				cin >> filelocation;
+			}
+		}
+
+		
 
 		for (int idx = 0; idx < processCount; idx++)
 		{
@@ -122,7 +121,7 @@ int main() {
 						{
 							if(PhysicalMem[idc].getVM() == ProcessArr[idx].getVM(i))
 							{
-								cout << "	Physical " << PhysicalMem[idc].getVM() << endl;
+								cout << "	Physical " << idc + 1 << endl;
 								swapped = false;
 							}
 						}
@@ -141,7 +140,18 @@ int main() {
 			cout << "	" << idx + 1 << "		";
 			(PhysicalMem[idx].getFree()) ? cout << "FREE" << endl : cout << "Process	" <<  PhysicalMem[idx].getPID() << endl;
 		}
-	
+
+		delete [] PhysicalMem;
+		delete [] ProcessArr;
+		delete [] SwapArr;
+		instructionCount;
+		processCount = 0;
+		counter = 0;
+		allocated = 0;
+		runFIFO = false;
+		runLRU = false;
+		runRandom = false;
+	}
 }
 
 bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * PhysicalMem, Swap * SwapArr)
@@ -156,8 +166,6 @@ bool importProcesses(string argFileLocation, Processes * ProcessesArr, Pmem * Ph
 		cout <<"error opening file";
 		return false;
 	}
-
-	cout << endl <<"importing Processes..." << endl << endl;
 
 	//start by counting the number of Processes we will be creating/populating
 	while (!Processesfile.eof())
@@ -274,12 +282,14 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 							allocated = idx;
 							idx = 21;
 						}
+						cout << allocated << endl;
 					}
 					if(allocated == 20)
 					{
 
 						if(runFIFO)
 						{
+							cout <<"FIFO" <<endl;
 							int toreplace = 0;
 							toreplace = FIFO(newProcess, PhysicalMem, SwapArr, processCount);
 							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
@@ -290,6 +300,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 						}
 						if(runLRU)
 						{
+							cout <<"LRU" <<endl;
 							int toreplace = 0;
 							toreplace = LRU(newProcess, PhysicalMem, SwapArr, processCount);
 							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
@@ -301,6 +312,7 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 						}
 						if(runRandom)
 						{
+							cout <<"Random" <<endl;
 							int toreplace = 0;
 							toreplace = Random(newProcess, PhysicalMem, SwapArr, processCount);
 							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
