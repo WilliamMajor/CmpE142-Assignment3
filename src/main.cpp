@@ -41,8 +41,8 @@ int main() {
 	//cin>>filelocation;
 
 		failed = true;
-		//runFIFO = true;
-		runLRU = true;
+		runFIFO = true;
+		runLRU = false;
 		//badchoice = false;
 		filelocation = "memory.dat";
 		Processes* ProcessArr = new Processes[100];
@@ -223,17 +223,13 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 						if(runLRU)
 						{
 							int toreplace = 0;
-							//cout << processCount << endl;
 							toreplace = LRU(newProcess, PhysicalMem, SwapArr, processCount);
 							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
 							PhysicalMem[toreplace].setVM(newProcess[PID].getVM(newProcess[PID].count));
 							PhysicalMem[toreplace].setPID(jobdata[0]);
 							PhysicalMem[toreplace].setFree(false);
 							newProcess[PID].count++;
-							//cout << newProcess[PID].getPID() << endl;
-							// cout << newProcess[PID].lastTouched  << endl;
 							newProcess[PID].lastTouched = clock();
-							// cout << newProcess[PID].lastTouched  << endl;
 						}
 				}
 					else
@@ -404,14 +400,18 @@ int FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
 	int swaparrayidx = 0;
 	int pmswapped = 0;
 
+	for(int i = 0; i < 200; i++)
+	{
+		vmswap[i] = "";
+	}
+
 	for(int idx = 0; idx < length; idx++)
 	{
-		for(int i = idx + 1; i < length; idx++)
+		if((int)newProcess[idx].firstTouched < (int)newProcess[first].firstTouched)
 		{
-			if(newProcess[idx].firstTouched > newProcess[i].firstTouched)
-			{
-				first = i;
-			}
+
+			first = idx;
+			
 		}
 	}
 	for(int i = 0; i < 200; i++)
@@ -423,8 +423,8 @@ int FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
 		}
 	}
 
+	srand(time(NULL));
 	swapchoice = rand() % vmswapCount + 0;
-	cout << swapchoice << endl;
 
 	while(SwapArr[swaparrayidx].getVM() != "")
 	{
@@ -439,9 +439,6 @@ int FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
 		{
 			if(PhysicalMem[idx].getVM() == newProcess[first].getVM(swapchoice))
 			{
-				cout <<"to swap:"<< endl;
-				cout << PhysicalMem[idx].getPID() << " ";
-				cout << PhysicalMem[idx].getVM() << endl;
 				PhysicalMem[idx].setFree(true);
 				PhysicalMem[idx].setVM("");
 				pmswapped = idx;
@@ -474,7 +471,6 @@ int LRU(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
 		//cout << lasttouched << endl << endl;
 		if((int)newProcess[i].lastTouched > (int)newProcess[lasttouched].lastTouched)
 		{
-			cout << "find" << endl;
 
 			lasttouched = i;
 			
