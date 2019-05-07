@@ -32,21 +32,26 @@ bool runRandom = false;
 int main() {
 
 	string filelocation;
-	//int choice = 0;
+	int choice = 0;
 	bool failed;
+	bool swapped = true;
 	
-	//bool badchoice;
+	bool badchoice;
 
+	
 
 	cout<<"Enter location of input file: ";
-	//cin>>filelocation;
+	cin>>filelocation;
+
+
 
 		failed = true;
 		runFIFO = false;
 		runLRU = false;
 		runRandom = true;
+		
 		//badchoice = false;
-		filelocation = "memory.dat";
+		filelocation = filelocation;
 		Processes* ProcessArr = new Processes[100];
 		Pmem* PhysicalMem = new Pmem[20]; // allocate 20 physical memory
 		Swap* SwapArr = new Swap[100];
@@ -61,19 +66,80 @@ int main() {
 				cin >> filelocation;
 			}
 		}
-		// for (int idx = 0; idx < processCount; idx++)
-		// {
-		// 	cout << ProcessArr[idx].getPID() << " " << ProcessArr[idx].firstTouched << " " <<  ProcessArr[idx].lastTouched << endl;
-		// 	for(int i = 0; i < ProcessArr[idx].count; i++)
-		// 	{
-		// 		cout << ProcessArr[idx].getVM(i) << endl;
-		// 	}
-		// }
-		cout << endl <<  "physical memory" << endl << endl;
+
+		cout <<"1. FIFO " << endl << "2. LRU " << endl << "3. Random" << endl << endl;
+		cout << "What algorithm would you like to run?  ";
+		cin >> choice;
+
+		while(badchoice)
+		{
+			((choice >= 1) && (choice <= 3)) ? badchoice = false: badchoice = true;
+
+			if(badchoice)
+			{
+				cout << choice << " is not in the specified range" << endl << endl;
+				cout <<"1. FIFO " << endl << "2. LRU " << endl << "3. Random" << endl << endl;
+				cout << "What algorithm would you like to run?  ";
+				cin >> choice;
+			}
+			
+		}
+
+		switch(choice)
+		{
+			case 1: 
+				runFIFO = true;
+				runLRU = false;
+				runRandom = false;
+				break;
+			case 2:
+				runFIFO = false;
+				runLRU = true;
+				runRandom = false;
+				break;
+			case 3:
+				runFIFO = false;
+				runLRU = false;
+				runRandom = true;
+				break;
+			case 4:
+				exit(1);
+			
+
+		}
+
+		for (int idx = 0; idx < processCount; idx++)
+		{
+			if(!ProcessArr[idx].getTerminated())
+			{
+				cout << "PROCESS " <<ProcessArr[idx].getPID() << endl;
+				for(int i = 0; i < ProcessArr[idx].count; i++)
+				{
+					cout << "	Virtual " << ProcessArr[idx].getVM(i);
+					for(int idc = 0; idc < 20; idc++)
+					{
+						if(PhysicalMem[idc].getPID() == ProcessArr[idx].getPID())
+						{
+							if(PhysicalMem[idc].getVM() == ProcessArr[idx].getVM(i))
+							{
+								cout << "	Physical " << PhysicalMem[idc].getVM() << endl;
+								swapped = false;
+							}
+						}
+					}
+					if(swapped)
+					{
+						cout << "	Swap" << endl;
+					}
+					swapped = true;
+				}
+			}
+		}
+		cout << endl <<  "PHYSICAL" << endl << endl;
 		for(int idx = 0; idx < 20; idx++)
 		{
-			cout << PhysicalMem[idx].getPID() << " " << PhysicalMem[idx].getVM() << " ";
-			(PhysicalMem[idx].getFree()) ? cout << "FREE" << endl : cout << "TAKEN" << endl;
+			cout << "	" << idx + 1 << "		";
+			(PhysicalMem[idx].getFree()) ? cout << "FREE" << endl : cout << "Process	" <<  PhysicalMem[idx].getPID() << endl;
 		}
 	
 }
