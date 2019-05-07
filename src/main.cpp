@@ -65,7 +65,7 @@ int main() {
 			if(badchoice)
 			{
 				cout << choice << " is not in the specified range" << endl << endl;
-				cout <<"1. FIFO " << endl << "2. LRU " << endl << "3. Random" << endl << endl;
+				cout <<"1. FIFO " << endl << "2. LRU " << endl << "3. Random " << "4. Exit" << endl << endl;
 				cout << "What algorithm would you like to run?  ";
 				cin >> choice;
 			}
