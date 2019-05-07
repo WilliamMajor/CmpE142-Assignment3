@@ -19,6 +19,7 @@ string replaceSpaceTab(string rawInput);
 void parseline(string procInput, Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr);
 int FIFO(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length);
 int LRU(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length);
+int Random(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length);
 
 int instructionCount;
 int processCount = 0;
@@ -41,8 +42,9 @@ int main() {
 	//cin>>filelocation;
 
 		failed = true;
-		runFIFO = true;
+		runFIFO = false;
 		runLRU = false;
+		runRandom = true;
 		//badchoice = false;
 		filelocation = "memory.dat";
 		Processes* ProcessArr = new Processes[100];
@@ -224,6 +226,17 @@ void parseline(string Input, Processes * newProcess, Pmem * PhysicalMem, Swap * 
 						{
 							int toreplace = 0;
 							toreplace = LRU(newProcess, PhysicalMem, SwapArr, processCount);
+							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
+							PhysicalMem[toreplace].setVM(newProcess[PID].getVM(newProcess[PID].count));
+							PhysicalMem[toreplace].setPID(jobdata[0]);
+							PhysicalMem[toreplace].setFree(false);
+							newProcess[PID].count++;
+							newProcess[PID].lastTouched = clock();
+						}
+						if(runRandom)
+						{
+							int toreplace = 0;
+							toreplace = Random(newProcess, PhysicalMem, SwapArr, processCount);
 							newProcess[PID].setVM(jobdata[1], newProcess[PID].count);
 							PhysicalMem[toreplace].setVM(newProcess[PID].getVM(newProcess[PID].count));
 							PhysicalMem[toreplace].setPID(jobdata[0]);
@@ -512,6 +525,59 @@ int LRU(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
 				cout << PhysicalMem[idx].getPID() << " ";
 				cout << PhysicalMem[idx].getVM() << endl;
 				cout << "idx " << idx << endl<< endl;
+				PhysicalMem[idx].setFree(true);
+				PhysicalMem[idx].setVM("");
+				pmswapped = idx;
+
+			}
+		}
+
+	}
+	return pmswapped;
+}
+
+int Random(Processes * newProcess, Pmem * PhysicalMem, Swap * SwapArr, int length)
+{
+	int random = 0;
+	string vmswap[200];
+	int vmswapCount = 0;
+	int swapchoice = 0;
+	int swaparrayidx = 0;
+	int pmswapped = 0;
+
+	for(int i = 0; i < 200; i++)
+	{
+		vmswap[i] = "";
+	}
+
+	srand(rand());
+	random = rand() % length + 0;
+
+	for(int i = 0; i < 200; i++)
+	{
+		if(newProcess[random].getVM(i) != "")
+		{
+			vmswap[vmswapCount] = newProcess[random].getVM(i);
+			vmswapCount++;
+		}
+	}
+
+	srand(time(NULL));
+	swapchoice = rand() % vmswapCount + 0;
+
+	while(SwapArr[swaparrayidx].getVM() != "")
+	{
+		swaparrayidx++;
+	}
+	//add to the list of swapped vms
+	SwapArr[swaparrayidx].setVM(newProcess[random].getVM(swapchoice));
+	//free up the space in the physical memory
+	for (int idx = 0; idx < 20; idx++)
+	{
+		if(PhysicalMem[idx].getPID() == newProcess[random].getPID())
+		{
+			if(PhysicalMem[idx].getVM() == newProcess[random].getVM(swapchoice))
+			{
 				PhysicalMem[idx].setFree(true);
 				PhysicalMem[idx].setVM("");
 				pmswapped = idx;
